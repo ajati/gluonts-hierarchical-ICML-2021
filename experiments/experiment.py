@@ -15,6 +15,7 @@ from gluonts.mx.trainer import Trainer
 
 from config.dataset_config import dataset_config_dict
 
+METRICS = ["RMSSE", "MAPE", "sMAPE", "MASE", "mean_wQuantileLoss",]
 
 class HierarchicalDatasetInfo(NamedTuple):
     train_dataset: Dataset
@@ -186,27 +187,33 @@ class Experiment:
             num_nodes_per_level = [1] + [np.asscalar(np.sum(n)) for n in nodes]
             cum_num_nodes_per_level = np.cumsum(num_nodes_per_level)
 
-        metric_name = "mean_wQuantileLoss"
-        level_wise_agg_metrics = {}
-        start_ix = 0
-        level_names = dataset_config_dict[dataset_str]["level_names"]
-        for l, end_ix in enumerate(cum_num_nodes_per_level):
-            agg_metrics_level, _ = evaluator.get_aggregate_metrics(item_metrics.iloc[start_ix:end_ix])
-            print(f"level_{level_names[l]}_{metric_name}", agg_metrics_level[metric_name])
+        print(agg_metrics["MASE"],agg_metrics["MAPE"],agg_metrics["sMAPE"],)
 
-            level_wise_agg_metrics[f"level_{level_names[l]}_{metric_name}"] = agg_metrics_level[metric_name]
-            start_ix = end_ix
+        # metric_name = "mean_wQuantileLoss"
+        all_level_wise_metrics = {}
+        for metric_name in METRICS:
+            level_wise_agg_metrics = {}
+            start_ix = 0
+            level_names = dataset_config_dict[dataset_str]["level_names"]
+            for l, end_ix in enumerate(cum_num_nodes_per_level):
+                agg_metrics_level, _ = evaluator.get_aggregate_metrics(item_metrics.iloc[start_ix:end_ix])
+                print(f"level_{level_names[l]}_{metric_name}", agg_metrics_level[metric_name])
+
+                level_wise_agg_metrics[f"level_{level_names[l]}_{metric_name}"] = agg_metrics_level[metric_name]
+                start_ix = end_ix
+            all_level_wise_metrics[metric_name] = level_wise_agg_metrics
 
         for name in self.job_config["metrics"]:
             print(f"{name}", agg_metrics[name])
 
-        return agg_metrics, level_wise_agg_metrics
+        # return agg_metrics, level_wise_agg_metrics
+        return agg_metrics, all_level_wise_metrics
 
 
 def main(dataset_path: str, estimator: Type[Estimator], hyper_params: Dict, job_config: Optional[Dict] = None):
     if not job_config:
         job_config = dict(
-            metrics=["mean_wQuantileLoss"],
+            metrics=METRICS,
             validation=False,
         )
 

@@ -263,6 +263,23 @@ class Evaluator:
         seasonal_mae = np.mean(abs(y_t - y_tm))
 
         return seasonal_mae if seasonal_mae is not np.ma.masked else np.nan
+    
+    def naive_error(
+        self, past_data: np.ndarray, forecast: Forecast
+    ) -> float:
+        r"""
+        .. math::
+
+            naive_error = mean(|Y[t] - Y[t-1]|**2)
+
+        """
+        # Check if the length of the time series is larger than the seasonal frequency
+        y_t = past_data[:-1]
+        y_tm = past_data[1:]
+
+        naive_mse = np.mean((y_tm - y_t)**2)
+
+        return naive_mse if naive_mse is not np.ma.masked else np.nan
 
     def get_metrics_per_ts(
         self, time_series: Union[pd.Series, pd.DataFrame], forecast: Forecast
@@ -280,6 +297,7 @@ class Evaluator:
             mean_fcst = None
         median_fcst = forecast.quantile(0.5)
         seasonal_error = self.seasonal_error(past_data, forecast)
+        naive_error = self.naive_error(past_data, forecast)
         metrics = {
             "item_id": forecast.item_id,
             "MSE": self.mse(pred_target, mean_fcst)
@@ -290,6 +308,7 @@ class Evaluator:
             "abs_target_mean": self.abs_target_mean(pred_target),
             "seasonal_error": seasonal_error,
             "MASE": self.mase(pred_target, median_fcst, seasonal_error),
+            "RMSSE": self.rmsse(pred_target, median_fcst, naive_error),
             "MAPE": self.mape(pred_target, median_fcst),
             "sMAPE": self.smape(pred_target, median_fcst),
             "OWA": np.nan,  # by default not calculated
@@ -363,6 +382,7 @@ class Evaluator:
             "abs_target_mean": "mean",
             "seasonal_error": "mean",
             "MASE": "mean",
+            "RMSSE": "mean",
             "MAPE": "mean",
             "sMAPE": "mean",
             "OWA": "mean",
@@ -460,6 +480,20 @@ class Evaluator:
         flag = seasonal_error <= Evaluator.zero_tol
         return (np.mean(np.abs(target - forecast)) * (1 - flag)) / (
             seasonal_error + flag
+        )
+    
+    @staticmethod
+    def rmsse(target, forecast, naive_error):
+        r"""
+        .. math::
+
+            mase = sqrt( mean((Y - Y_hat)**2) / naive_error )
+
+        """
+        flag = naive_error <= Evaluator.zero_tol
+        return np.sqrt( 
+            (np.mean(np.square(target - forecast)) * (1 - flag)) / 
+            (naive_error + flag)
         )
 
     @staticmethod

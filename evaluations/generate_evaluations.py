@@ -25,7 +25,8 @@ from gluonts.dataset.repository.datasets import get_dataset, dataset_names
 from gluonts.evaluation.backtest import backtest_metrics
 from gluonts.model.seasonal_naive import SeasonalNaivePredictor
 
-metrics_persisted = ["mean_wQuantileLoss", "ND", "RMSE"]
+# metrics_persisted = ["mean_wQuantileLoss", "ND", "RMSE"]
+metrics_persisted = ["mean_wQuantileLoss", "ND", "RMSE", "MASE", "MAPE", "sMAPE", "RMSSE"]
 datasets = dataset_names
 
 Estimators = [

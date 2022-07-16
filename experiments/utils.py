@@ -34,12 +34,13 @@ def parse_results(dataset, method, num_runs):
     return agg_metrics_ls, level_wise_agg_metrics_ls
 
 
-def print_results(agg_metrics_ls, level_wise_agg_metrics_ls):
+def print_results(agg_metrics_ls, level_wise_agg_metrics_ls, metric_name="mean_wQuantileLoss"):
     num_runs = len(agg_metrics_ls)
 
     print(f"\n****** Results averaged over {num_runs} runs "
-          f"(level-wise CRPS scores are shown first followed by the overall CRPS score): ******")
+          f"(level-wise {metric_name} scores are shown first followed by the overall {metric_name} score): ******")
 
+    results = {}
     for level_metric_name in level_wise_agg_metrics_ls[0].keys():
         level_wise_errors = [
             level_wise_agg_metric[level_metric_name]
@@ -48,11 +49,12 @@ def print_results(agg_metrics_ls, level_wise_agg_metrics_ls):
         level_wise_mean, level_wise_std = np.mean(level_wise_errors), np.std(level_wise_errors)
         print(f"Mean +/- std. of {level_metric_name} over {num_runs} num_runs: "
               f"{level_wise_mean:.4f} +/- {level_wise_std:.4f}")
+        results[level_metric_name.split(metric_name)[0][:-1]] = (level_wise_mean, level_wise_std)
 
-    metric_name = "mean_wQuantileLoss"
     errors = [
         agg_metrics[metric_name]
         for agg_metrics in agg_metrics_ls
     ]
     mean, std = np.mean(errors), np.std(errors)
     print(f"Mean +/- std. of {metric_name} over {num_runs} num_runs: {mean:.4f} +/- {std:.4f}")
+    return results
