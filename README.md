@@ -24,6 +24,7 @@ change over time there.
 To run them, `rpy2` must be installed along with R and `hts` package: 
 
 ```
+(for mac osx) brew install pcre2
 pip install rpy2==2.9
 pip install jinja2
 R -e 'install.packages(c("hts"), repos="https://cloud.r-project.org")'
