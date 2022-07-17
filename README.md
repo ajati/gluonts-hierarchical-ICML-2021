@@ -34,6 +34,11 @@ For running the competing method `PERMBU_MINT`, more packages need to be install
 R -e 'install.packages(c("here", "SGL", "matrixcalc", "igraph", "gsl", "copula", "sn", "scoringRules", "fBasics", "msm", "gtools", "lubridate", "forecast", "abind", "glmnet", "propagate", "SuppDists"))'
 ```
 
+If `rpy2.rinterface.RRuntimeError: Error: package ‘gmm’ could not be loaded` is encounterd, then gfortran packages should be installed
+```
+https://github.com/fxcoudert/gfortran-for-macOS/releases
+```
+
 ## Running
 
 All the methods compared in the paper can be run as follows. Our method is denoted as "HierE2E".
